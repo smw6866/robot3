@@ -29,7 +29,6 @@ def download_file_ftp(uri):
     return True
 
 def download_file_http(uri):
-    # Need to test this still, raspi web server isn't running for me to verify
     urllib.request.urlretrieve(uri, "./actions.json")
     return True
 
