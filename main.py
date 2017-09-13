@@ -1,6 +1,7 @@
 import paramiko
 import ftplib
 import urllib.request
+import re
 
 def download_file_ssh(uri):
     ssh_client=paramiko.SSHClient()
@@ -45,9 +46,10 @@ def determine_download_method(uri):
 
 def follow_instructions(uri):
     with open("./actions.json") as f:
-        list_of_commands = f.read()
-        print(list_of_commands)
-
+        file = f.read()
+    d = re.findall(r'"action": "(\w*)",\n\s*"time": (\d*)', file, re.MULTILINE)
+    for x in d:
+        print(x)
 def main():
     uri = "http://10.186.239.3/actions.json"
     determine_download_method(uri)
