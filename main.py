@@ -49,7 +49,8 @@ def follow_instructions(uri):
         file = f.read()
     d = re.findall(r'"action": "(\w*)",\n\s*"time": (\d*)', file, re.MULTILINE)
     for x in d:
-        print(x)
+        print("Action to perform: " + x[0] + " Time to perform for: " + x[1])
+        print()
 def main():
     uri = "http://10.186.239.3/actions.json"
     determine_download_method(uri)
