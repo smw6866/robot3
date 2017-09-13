@@ -42,11 +42,17 @@ def determine_download_method(uri):
         download_file_ssh(uri)
     else:
         raise ValueError("Invalid method")
+    return True
+
+def follow_instructions(uri):
+    with open("./actions.json") as f:
+        list_of_commands = f.read()
+        print(list_of_commands)
 
 def main():
-    uri = "ftp://10.186.239.3/actions.json"
-    with open("./actions.json") as f:
-        print(f.read())
+    uri = "http://10.186.239.3/actions.json"
+    determine_download_method(uri)
+    follow_instructions("./actions.json")
 
 if __name__ == "__main__":
     main()
