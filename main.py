@@ -2,6 +2,8 @@ import paramiko
 import ftplib
 import urllib.request
 import re
+import Robot
+import RPi.GPIO as GPIO
 
 def download_file_ssh(uri):
     ssh_client=paramiko.SSHClient()
@@ -44,17 +46,28 @@ def determine_download_method(uri):
         raise ValueError("Invalid method")
     return True
 
-def follow_instructions(uri):
+def get_instructions(uri):
+    """ Creates and returns a list 'actions_list' where each time in the list contains:
+    index0 - action to perform, index1 - time to perform for """
+
     with open("./actions.json") as f:
         file = f.read()
-    d = re.findall(r'"action": "(\w*)",\n\s*"time": (\d*)', file, re.MULTILINE)
-    for x in d:
+    actions_list = re.findall(r'"action": "(\w*)",\n\s*"time": (\d*)', file, re.MULTILINE)
+    for x in actions_list:
         print("Action to perform: " + x[0] + " Time to perform for: " + x[1])
         print()
+    return actions_list
+
+
+def follow_instructions(list):
+    robot_object = Robot.Robot(left_trim=0, right_trim=0)
+    GPIO.setmode(GPIO.BOARD)
+    # work in progress
+
 def main():
     uri = "http://10.186.239.3/actions.json"
     determine_download_method(uri)
-    follow_instructions("./actions.json")
+    get_instructions("./actions.json")
 
 if __name__ == "__main__":
     main()
