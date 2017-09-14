@@ -61,11 +61,10 @@ def get_instructions(uri):
     actions_list = re.findall(r'"action": "(\w*)",\n\s*"time": (\d*)', file, re.MULTILINE)
     for x in actions_list:
         print("Action to perform: " + x[0] + " Time to perform for: " + x[1])
-        print()
     return actions_list
 
 
-def follow_instructions(list):
+def follow_instructions(actions_list):
     """Work In Progress
     """
 
@@ -73,55 +72,61 @@ def follow_instructions(list):
     pin_R = 12
     pin_G = 32
     pin_B = 36
-    ObstaclePin = 11
     BuzzerPin = 16
     RIGHT = 15  # GPIO 22 pin 15 (Right side sensor)
     LEFT = 13  # GPIO 27 pin 13 (Left side sensor)
-    buzzerstate = 0
 
     GPIO.setmode(GPIO.BOARD)
     GPIO.setup(pin_R, GPIO.OUT)
     GPIO.setup(pin_G, GPIO.OUT)
     GPIO.setup(pin_B, GPIO.OUT)
-    GPIO.setup(ObstaclePin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(BuzzerPin, GPIO.OUT)
     GPIO.setup(RIGHT, GPIO.IN)
     GPIO.setup(LEFT, GPIO.IN)
 
     try:
-        while True:
-            if 0 != GPIO.input(ObstaclePin):
-                GPIO.output(pin_G, 1)
-                if GPIO.input(RIGHT) == 1 and GPIO.input(LEFT) == 1:
-                    robot.forward(100)
-                    print("Both=1")
-                elif GPIO.input(LEFT) == 1 and GPIO.input(RIGHT) == 0:
-                    robot.left(100)
-                    print("Left=1")
-                elif GPIO.input(RIGHT) == 1 and GPIO.input(LEFT) == 0:
-                    robot.right(100)
-                    print("Right=1")
-                elif GPIO.input(RIGHT) == 0 and GPIO.input(LEFT) == 0:
-                    robot.forward(100)
-                    print("No Signal")
-            if 0 == GPIO.input(ObstaclePin):
-                startTime = time.time()
-            while 0 == GPIO.input(ObstaclePin):
-                now = time.time()
-                if (now - startTime) >= 5 and buzzerstate != 1:
-                    buzzerstate = 1
-                    print("Activating Buzzer")
-                    GPIO.output(BuzzerPin, GPIO.HIGH)
-                GPIO.output(pin_G, 0)
-                GPIO.output(pin_R, 1)
-                robot.forward(0)
-                robot.left(0)
-                robot.right(0)
+        GPIO.output(pin_G, 1)
+        for _ in range(4):
+            GPIO.output(BuzzerPin, GPIO.HIGH)
+            time.sleep(1)
             GPIO.output(BuzzerPin, GPIO.LOW)
-            buzzerstate = 0
-            GPIO.output(pin_G, 0)
-            GPIO.output(pin_R, 0)
-            GPIO.output(pin_B, 0)
+        GPIO.output(pin_G, 0)
+        for action in actions_list:
+            if action[0] == "forward":
+                robot.forward(150, action[1])
+            elif action[0] == "backward":
+                robot.backward(150, action[1])
+            elif action[0] == "left":
+                robot.left(150, action[1])
+            elif action[0] == "right":
+                robot.right(150, action[1])
+            elif action[0] == "play_sound":
+                GPIO.output(BuzzerPin, GPIO.HIGH)
+                time.sleep(action[1])
+                GPIO.output(BuzzerPin, GPIO.LOW)
+            elif action[0] == "led_blue":
+                GPIO.output(pin_B, 1)
+                time.sleep(action[1])
+                GPIO.output(pin_B, 0)
+            elif action[0] == "led_green":
+                GPIO.output(pin_G, 1)
+                time.sleep(action[1])
+                GPIO.output(pin_G, 0)
+            elif action[0] == "led_red":
+                GPIO.output(pin_R, 1)
+                time.sleep(action[1])
+                GPIO.output(pin_R, 0)
+            elif action[0] == "stop":
+                GPIO.cleanup()
+                return True
+            else:
+                GPIO.output(pin_R, 1)
+                GPIO.output(BuzzerPin, GPIO.HIGH)
+                time.sleep(5)
+                GPIO.output(BuzzerPin, GPIO.LOW)
+                GPIO.output(pin_R, 0)
+                GPIO.cleanup()
+                return True
     except KeyboardInterrupt:
         GPIO.cleanup()
 
@@ -129,7 +134,8 @@ def follow_instructions(list):
 def main():
     uri = "http://10.186.239.3/actions.json"
     determine_download_method(uri)
-    get_instructions("./actions.json")
+    actions_list = get_instructions("./actions.json")
+    if actions_list: follow_instructions(actions_list)
 
 if __name__ == "__main__":
     main()
