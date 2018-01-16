@@ -65,8 +65,7 @@ def get_instructions(uri):
 
 
 def follow_instructions(actions_list):
-    """Work In Progress
-    """
+    """ Reads in the actions list and follows the instructions as per the list """
 
     robot = Robot.Robot(left_trim=0, right_trim=0)
     pin_R = 12
