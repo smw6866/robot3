@@ -1,6 +1,6 @@
 import paramiko
 import ftplib
-import urllib.request
+import urllib
 import re
 import Robot
 import RPi.GPIO as GPIO
@@ -9,7 +9,7 @@ import time
 
 def download_file_ssh(uri):
     ssh_client=paramiko.SSHClient()
-    ssh_hn = "10.186.239.3"
+    ssh_hn = "10.154.66.243"
     ssh_un = "pi"
     ssh_pw = "raspberry"
     remote_file = "/home/pi/sftp/actions.json"
@@ -24,7 +24,7 @@ def download_file_ssh(uri):
 
 
 def download_file_ftp(uri):
-    ip = "10.186.239.3"
+    ip = "10.154.66.243"
     username = "pi"
     pw = "raspberry"
     filename = "actions.json"
@@ -36,7 +36,7 @@ def download_file_ftp(uri):
 
 
 def download_file_http(uri):
-    urllib.request.urlretrieve(uri, "./actions.json")
+    urllib.urlretrieve(uri, './actions.json')
     return True
 
 
@@ -86,35 +86,41 @@ def follow_instructions(actions_list):
 
     try:
         GPIO.output(pin_G, 1)
+	print("Actions List :")
+	print(actions_list)
+
         for _ in range(4):
             GPIO.output(BuzzerPin, GPIO.HIGH)
             time.sleep(1)
             GPIO.output(BuzzerPin, GPIO.LOW)
         GPIO.output(pin_G, 0)
         for action in actions_list:
+	    print("action: ")
+	    print(action)
+	    time_var = int(action[1])
             if action[0] == "forward":
-                robot.forward(150, action[1])
+		robot.forward(150, time_var)
             elif action[0] == "backward":
-                robot.backward(150, action[1])
+                robot.backward(150, time_var)
             elif action[0] == "left":
-                robot.left(150, action[1])
+                robot.left(150, time_var)
             elif action[0] == "right":
-                robot.right(150, action[1])
+                robot.right(150, time_var)
             elif action[0] == "play_sound":
                 GPIO.output(BuzzerPin, GPIO.HIGH)
-                time.sleep(action[1])
+                time.sleep(time_var)
                 GPIO.output(BuzzerPin, GPIO.LOW)
             elif action[0] == "led_blue":
                 GPIO.output(pin_B, 1)
-                time.sleep(action[1])
+                time.sleep(time_var)
                 GPIO.output(pin_B, 0)
             elif action[0] == "led_green":
                 GPIO.output(pin_G, 1)
-                time.sleep(action[1])
+                time.sleep(time_var)
                 GPIO.output(pin_G, 0)
             elif action[0] == "led_red":
                 GPIO.output(pin_R, 1)
-                time.sleep(action[1])
+                time.sleep(time_var)
                 GPIO.output(pin_R, 0)
             elif action[0] == "stop":
                 GPIO.cleanup()
@@ -132,7 +138,7 @@ def follow_instructions(actions_list):
 
 
 def main():
-    uri = "http://10.186.239.3/actions.json"
+    uri = "http://10.154.66.61/actions.json"
     determine_download_method(uri)
     actions_list = get_instructions("./actions.json")
     if actions_list: follow_instructions(actions_list)
